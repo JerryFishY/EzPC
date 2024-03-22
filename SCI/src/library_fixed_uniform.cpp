@@ -1133,8 +1133,8 @@ void MaxPool(int32_t N, int32_t H, int32_t W, int32_t C, int32_t ksizeH,
                    ((curPosW < 0) || (curPosW >= imgW)))) {
                 temp = 0;
               } else {
-                temp = Arr4DIdxRowM(inArr, N, imgH, imgW, C, n, curPosH,
-                                    curPosW, c);
+                temp = Arr4DIdxRowM(inArr, N,C, imgH, imgW,  n,c, curPosH,
+                                    curPosW);
               }
               reInpArr[finalIdx] = temp;
             }
@@ -1176,7 +1176,7 @@ void MaxPool(int32_t N, int32_t H, int32_t W, int32_t C, int32_t ksizeH,
       for (int h = 0; h < H; h++) {
         for (int w = 0; w < W; w++) {
           int iidx = n * C * H * W + c * H * W + h * W + w;
-          Arr4DIdxRowM(outArr, N, H, W, C, n, h, w, c) = getRingElt(maxi[iidx]);
+          Arr4DIdxRowM(outArr, N, C,H, W,  n,c, h, w) = getRingElt(maxi[iidx]);
         }
       }
     }
@@ -1542,7 +1542,7 @@ void StartComputation() {
 #endif
   std::cout << "bitlength: " << bitlength << std::endl;
   std::cout << "prime_mod: " << prime_mod << std::endl;
-  checkIfUsingEigen();
+  // checkIfUsingEigen();
   for (int i = 0; i < num_threads; i++) {
     iopackArr[i] = new sci::IOPack(party, port + i, address);
     ioArr[i] = iopackArr[i]->io;
@@ -1590,10 +1590,10 @@ void StartComputation() {
                                          MILL_PARAM, prime_mod, otpack);
   argmax = new ArgMaxProtocol<intType>(party, FIELD, iopack, bitlength,
                                        MILL_PARAM, prime_mod, otpack);
-  he_conv = new ConvField(party, io);
-  he_fc = new FCField(party, io);
-  he_prod = new ElemWiseProdField(party, io);
-  assertFieldRun();
+  // he_conv = new ConvField(party, io);
+  // he_fc = new FCField(party, io);
+  // he_prod = new ElemWiseProdField(party, io);
+  // assertFieldRun();
 #endif
 
 #if defined MULTITHREADED_NONLIN && defined SCI_OT
@@ -1755,7 +1755,29 @@ void EndComputation() {
             << " seconds." << std::endl;
   std::cout << "Total time in NormaliseL2 = "
             << (NormaliseL2TimeInMilliSec / 1000.0) << " seconds." << std::endl;
-  std::cout << "------------------------------------------------------\n";
+  std::cout << "Total time in Conv2dCoeff = "
+            << (Conv2dCoeffTimeInMilliSec / 1000.0)
+            << " seconds." << std::endl;
+  std::cout << "Total time in computation time = "
+            << (Conv2dCompTimeInMilliSec / 1000.0)
+            << " seconds." << std::endl;
+  std::cout << "Total time in Fpga computation time = "
+            << (Conv2dFpgaTimeInMilliSec / 1000.0)
+            << " seconds." << std::endl;
+  std::cout << "Total time in encoding time = "
+            << Conv2dCoeffencodingInMilliSec / 1000.0
+            << " seconds." << std::endl;
+  std::cout << "Total time in pakcing ac time = "
+            << Conv2dpackingacInMilliSec / 1000.0 << " Seconds."
+            << std::endl;
+  std::cout << "Total time in mask genration time = "
+            << Conv2dMaskTimeInMilliSec / 1000.0
+            << " Seconds." << std::endl;
+  std::cout << "Total time in Decryption and decode time = "
+            << Conv2dDecryptUnpackInMilliSec / 1000.0
+            << " Seconds." << std::endl;
+  std::cout << "-------------------------------------------"
+               "-----------\n";
   std::cout << "Conv data sent = " << ((ConvCommSent) / (1.0 * (1ULL << 20)))
             << " MiB." << std::endl;
   std::cout << "MatMul data sent = "
@@ -1797,6 +1819,10 @@ void EndComputation() {
   std::cout << "NormaliseL2 data sent = "
             << ((NormaliseL2CommSent) / (1.0 * (1ULL << 20))) << " MiB."
             << std::endl;
+  std::cout << "Conv2dCoeffCommSent data sent = "
+            << ((Conv2dCoeffCommSent) /
+                (1.0 * (1ULL << 20)))
+            << " MiB." << std::endl;
   std::cout << "------------------------------------------------------\n";
   if (party == SERVER) {
     uint64_t ConvCommSentClient = 0;
@@ -1815,6 +1841,7 @@ void EndComputation() {
     uint64_t TanhCommSentClient = 0;
     uint64_t SqrtCommSentClient = 0;
     uint64_t NormaliseL2CommSentClient = 0;
+    uint64_t Conv2dCoeffCommSentClient = 0;
 
     io->recv_data(&ConvCommSentClient, sizeof(uint64_t));
     io->recv_data(&MatMulCommSentClient, sizeof(uint64_t));
@@ -1832,9 +1859,10 @@ void EndComputation() {
     io->recv_data(&TanhCommSentClient, sizeof(uint64_t));
     io->recv_data(&SqrtCommSentClient, sizeof(uint64_t));
     io->recv_data(&NormaliseL2CommSentClient, sizeof(uint64_t));
-
+    io->recv_data(&Conv2dCoeffCommSentClient, sizeof(uint64_t));
     std::cout << "Conv data (sent+received) = "
-              << ((ConvCommSent + ConvCommSentClient) / (1.0 * (1ULL << 20)))
+              << ((ConvCommSent + ConvCommSentClient) /
+                  (1.0 * (1ULL << 20)))
               << " MiB." << std::endl;
     std::cout << "MatMul data (sent+received) = "
               << ((MatMulCommSent + MatMulCommSentClient) /
@@ -1893,9 +1921,16 @@ void EndComputation() {
               << ((NormaliseL2CommSent + NormaliseL2CommSentClient) /
                   (1.0 * (1ULL << 20)))
               << " MiB." << std::endl;
+    std::cout
+        << "Conv2dCoeffCommSent data (sent+received) = "
+        << ((Conv2dCoeffCommSent +
+             Conv2dCoeffCommSentClient) /
+            (1.0 * (1ULL << 20)))
+        << " MiB." << std::endl;
 
 #ifdef WRITE_LOG
-    std::string file_addr = "results-Porthos2PC-server.csv";
+        std::string file_addr =
+        "results-Porthos2PC-server.csv";
     bool write_title = true;
     {
       std::fstream result(file_addr.c_str(), std::fstream::in);
@@ -1955,6 +1990,7 @@ void EndComputation() {
     io->send_data(&TanhCommSent, sizeof(uint64_t));
     io->send_data(&SqrtCommSent, sizeof(uint64_t));
     io->send_data(&NormaliseL2CommSent, sizeof(uint64_t));
+    io->send_data(&Conv2dCoeffCommSent, sizeof(uint64_t));
   }
 #endif
 }

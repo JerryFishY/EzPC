@@ -91,7 +91,13 @@ uint64_t TanhTimeInMilliSec = 0;
 uint64_t SqrtTimeInMilliSec = 0;
 uint64_t NormaliseL2TimeInMilliSec = 0;
 uint64_t ArgMaxTimeInMilliSec = 0;
-
+uint64_t Conv2dCoeffTimeInMilliSec = 0;
+uint64_t Conv2dCompTimeInMilliSec = 0;
+uint64_t Conv2dFpgaTimeInMilliSec = 0;
+uint64_t Conv2dCoeffencodingInMilliSec = 0;
+uint64_t Conv2dpackingacInMilliSec = 0;
+uint64_t Conv2dMaskTimeInMilliSec = 0;
+uint64_t Conv2dDecryptUnpackInMilliSec = 0;
 uint64_t ConvCommSent = 0;
 uint64_t MatAddCommSent = 0;
 uint64_t BatchNormCommSent = 0;
@@ -108,4 +114,5 @@ uint64_t TanhCommSent = 0;
 uint64_t SqrtCommSent = 0;
 uint64_t NormaliseL2CommSent = 0;
 uint64_t ArgMaxCommSent = 0;
+uint64_t Conv2dCoeffCommSent = 0;
 #endif

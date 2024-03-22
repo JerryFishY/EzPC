@@ -118,6 +118,13 @@ extern uint64_t TanhTimeInMilliSec;
 extern uint64_t SqrtTimeInMilliSec;
 extern uint64_t NormaliseL2TimeInMilliSec;
 extern uint64_t ArgMaxTimeInMilliSec;
+extern uint64_t Conv2dCoeffTimeInMilliSec;
+extern uint64_t Conv2dCompTimeInMilliSec;
+extern uint64_t Conv2dFpgaTimeInMilliSec;
+extern uint64_t Conv2dCoeffencodingInMilliSec;
+extern uint64_t Conv2dpackingacInMilliSec;
+extern uint64_t Conv2dMaskTimeInMilliSec;
+extern uint64_t Conv2dDecryptUnpackInMilliSec;
 
 extern uint64_t ConvCommSent;
 extern uint64_t MatAddCommSent;
@@ -135,6 +142,7 @@ extern uint64_t TanhCommSent;
 extern uint64_t SqrtCommSent;
 extern uint64_t NormaliseL2CommSent;
 extern uint64_t ArgMaxCommSent;
+extern uint64_t Conv2dCoeffCommSent;
 #endif
 
 #endif // GLOBALS_H__
