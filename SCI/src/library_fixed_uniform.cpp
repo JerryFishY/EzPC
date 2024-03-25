@@ -1002,6 +1002,9 @@ void Relu(int32_t size, intType *inArr, intType *outArr, int sf,
 #ifdef LOG_LAYERWISE
     auto temp = TIMER_TILL_NOW;
     TruncationTimeInMilliSec += temp;
+    std::cout << "Time in sec for current Trunc = "
+              << (temp / 1000.0) << std::endl;
+
     uint64_t curComm;
     FIND_ALL_IO_TILL_NOW(curComm);
     TruncationCommSent += curComm;
@@ -1775,6 +1778,9 @@ void EndComputation() {
             << " Seconds." << std::endl;
   std::cout << "Total time in Decryption and decode time = "
             << Conv2dDecryptUnpackInMilliSec / 1000.0
+            << " Seconds." << std::endl;
+  std::cout << "Total time in pure parallelized decoding "
+            << Conv2dDEcodeParInMilliSec / 1000.0
             << " Seconds." << std::endl;
   std::cout << "-------------------------------------------"
                "-----------\n";

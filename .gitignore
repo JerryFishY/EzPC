@@ -17,3 +17,6 @@ SEAL
 *.dot
 *.csv
 *.out
+*.tar.gz*
+# extern
+/EzPC/SCI/extern/

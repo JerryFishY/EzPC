@@ -125,6 +125,7 @@ extern uint64_t Conv2dCoeffencodingInMilliSec;
 extern uint64_t Conv2dpackingacInMilliSec;
 extern uint64_t Conv2dMaskTimeInMilliSec;
 extern uint64_t Conv2dDecryptUnpackInMilliSec;
+extern uint64_t Conv2dDEcodeParInMilliSec;
 
 extern uint64_t ConvCommSent;
 extern uint64_t MatAddCommSent;

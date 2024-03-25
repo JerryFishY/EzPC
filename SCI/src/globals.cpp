@@ -98,6 +98,8 @@ uint64_t Conv2dCoeffencodingInMilliSec = 0;
 uint64_t Conv2dpackingacInMilliSec = 0;
 uint64_t Conv2dMaskTimeInMilliSec = 0;
 uint64_t Conv2dDecryptUnpackInMilliSec = 0;
+uint64_t Conv2dDEcodeParInMilliSec = 0;
+
 uint64_t ConvCommSent = 0;
 uint64_t MatAddCommSent = 0;
 uint64_t BatchNormCommSent = 0;
