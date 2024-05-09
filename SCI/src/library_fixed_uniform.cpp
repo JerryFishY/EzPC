@@ -994,7 +994,27 @@ void Relu(int32_t size, intType *inArr, intType *outArr, int sf,
     for (int i = 0; i < size; i++) {
       tempOutp[i] = tempOutp[i] & moduloMask;
     }
-    funcTruncateTwoPowerRingWrapper(size, tempOutp, outArr, sf, msbShare, true);
+    // funcTruncateTwoPowerRingWrapper(size, tempOutp, outArr, sf, msbShare, true);
+#ifndef MULTITHREADED_NONLIN
+truncation->truncate(size, tempOutp, outArr, sf, bitlength,1 ,msbShare);
+#else
+  std::thread trunc_threads[num_threads];
+  int chunk_size = size / num_threads;
+  for (int i = 0; i < num_threads; ++i) {
+    int offset = i * chunk_size;
+    int lnum_trunc;
+    if (i == (num_threads - 1)) {
+      lnum_trunc = size - offset;
+    } else {
+      lnum_trunc = chunk_size;
+    }
+    trunc_threads[i] = std::thread(funcTRUNCThread, i, tempOutp + offset,
+                                  inArr + offset, lnum_trunc, sf, bitlength,1,msbShare);
+  }
+  for (int i = 0; i < num_threads; ++i) {
+    trunc_threads[i].join();
+  }
+#endif
 #else
     funcFieldDivWrapper<intType>(size, tempOutp, outArr, 1ULL << sf, msbShare);
 #endif

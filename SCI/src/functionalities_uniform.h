@@ -208,7 +208,11 @@ void funcReLUThread(int tid, intType *outp, intType *inp, int numRelu,
                     uint8_t *drelu_res = nullptr, bool skip_ot = false) {
   reluArr[tid]->relu(outp, inp, numRelu, drelu_res, skip_ot);
 }
-
+#ifdef SCI_OT
+void funcTRUNCThread(int tid, uint64_t* tempOutp, uint64_t* outArr,int size,int sf,int bitlength,bool signed_arithmetic  ,uint8_t* msbShare) {
+  truncationArr[tid]->truncate(size, tempOutp, outArr, sf, bitlength, signed_arithmetic ,msbShare);
+}
+#endif
 void funcMaxpoolThread(int tid, int rows, int cols, intType *inpArr,
                        intType *maxi, intType *maxiIdx) {
   maxpoolArr[tid]->funcMaxMPC(rows, cols, inpArr, maxi, maxiIdx);
