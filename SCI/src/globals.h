@@ -46,7 +46,7 @@ SOFTWARE.
 
 // #define MULTI_THREADING
 
-#define MAX_THREADS 16
+#define MAX_THREADS 64
 
 extern sci::NetIO *io;
 extern sci::IOPack *iopack;
@@ -124,6 +124,7 @@ extern uint64_t Conv2dFpgaTimeInMilliSec;
 extern uint64_t Conv2dCoeffencodingInMilliSec;
 extern uint64_t Conv2dpackingacInMilliSec;
 extern uint64_t Conv2dMaskTimeInMilliSec;
+extern uint64_t Conv2dSendTimeInMilliSec;
 extern uint64_t Conv2dDecryptUnpackInMilliSec;
 extern uint64_t Conv2dDEcodeParInMilliSec;
 

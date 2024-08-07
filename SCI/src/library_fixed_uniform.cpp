@@ -1796,6 +1796,9 @@ void EndComputation() {
   std::cout << "Total time in mask genration time = "
             << Conv2dMaskTimeInMilliSec / 1000.0
             << " Seconds." << std::endl;
+  std::cout<< "Total time in sending time = "
+            <<Conv2dSendTimeInMilliSec / 1000.0
+            << " Seconds." << std::endl;
   std::cout << "Total time in Decryption and decode time = "
             << Conv2dDecryptUnpackInMilliSec / 1000.0
             << " Seconds." << std::endl;

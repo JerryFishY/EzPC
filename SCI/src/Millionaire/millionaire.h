@@ -109,7 +109,7 @@ public:
         uint8_t *choice = new uint8_t[num_cmps];
         for (int i = 0; i < num_cmps; i++) {
           choice[i] = data[i] & mask;
-        }
+        } 
         if (bitlength > 1) {
           otpack->kkot[bitlength - 1]->recv(res, choice, num_cmps, 1);
         } else {
@@ -126,6 +126,7 @@ public:
     num_cmps = ceil(num_cmps / 8.0) * 8;
 
     uint64_t *data_ext;
+    // Make data_ext multiple of 8
     if (old_num_cmps == num_cmps)
       data_ext = data;
     else {
@@ -160,7 +161,7 @@ public:
       for (int i = 0; i < num_digits * num_cmps; i++)
         leaf_ot_messages[i] = new uint8_t[beta_pow];
 
-      // Set Leaf OT messages
+      // Set Leaf OT messages: needs further check
       triple_gen->prg->random_bool((bool *)leaf_res_cmp, num_digits * num_cmps);
       triple_gen->prg->random_bool((bool *)leaf_res_eq, num_digits * num_cmps);
       for (int i = 0; i < num_digits; i++) {

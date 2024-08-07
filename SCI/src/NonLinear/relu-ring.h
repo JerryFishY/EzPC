@@ -37,9 +37,10 @@ public:
   MillionaireProtocol *millionaire;
   int party;
   int algeb_str;
+  // l represents the ring size ( 2**l )
   int l, b;
   int num_cmps;
-  uint8_t two_small = 1 << 1;
+  uint8_t two_small = 1 << 1;// represents 2
   uint8_t zero_small = 0;
   uint64_t mask_take_32 = -1;
   uint64_t msb_one;
@@ -76,14 +77,14 @@ public:
       mask_l = -1ULL;
     }
     if (sizeof(type) == sizeof(uint64_t)) {
-      msb_one = (1ULL << (this->l - 1));
-      relu_comparison_rhs_type = msb_one - 1ULL;
+      msb_one = (1ULL << (this->l - 1));  // example: 001000
+      relu_comparison_rhs_type = msb_one - 1ULL; // example: 000111
       relu_comparison_rhs = relu_comparison_rhs_type;
       cut_mask_type = relu_comparison_rhs_type;
       cut_mask = cut_mask_type;
     } else {
-      msb_one_type = (1 << (this->l - 1));
-      relu_comparison_rhs_type = msb_one_type - 1;
+      msb_one_type = (1 << (this->l - 1)); // example: 001000
+      relu_comparison_rhs_type = msb_one_type - 1; // example: 000111
       relu_comparison_rhs = relu_comparison_rhs_type + 0ULL;
       cut_mask_type = relu_comparison_rhs_type;
       cut_mask = cut_mask_type + 0ULL;
@@ -93,6 +94,7 @@ public:
   // Ideal Functionality
   void drelu_ring_ideal_func(uint8_t *result, type *sh1, type *sh2,
                              int num_relu) {
+    // "type" is the type of the input shares
     uint8_t *msb1 = new uint8_t[num_relu];
     uint8_t *msb2 = new uint8_t[num_relu];
     type *plain_value = new type[num_relu];
@@ -146,7 +148,7 @@ public:
     uint8_t *wrap = new uint8_t[num_cmps];
     for (int i = 0; i < num_relu; i++) {
       msb_local_share[i] = (uint8_t)(share[i] >> (l - 1));
-      array_type[i] = share[i] & cut_mask_type;
+      array_type[i] = share[i] & cut_mask_type; // the part except the msb
     }
 
     type temp;
@@ -185,7 +187,7 @@ public:
       delete[] array_type;
       return;
     }
-
+    // Following procedure will select the correct value from the shares with MUX protocol
     // Now perform x.msb(x)
     uint64_t **ot_messages = new uint64_t *[num_relu];
     for (int i = 0; i < num_relu; i++) {
