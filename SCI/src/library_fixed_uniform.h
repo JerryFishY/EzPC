@@ -83,7 +83,8 @@ void Max(int32_t size, intType *inArr, int32_t alpha, intType *outArr, int sf, b
 
 void Relu(int32_t size, intType *inArr, intType *outArr, int sf,
           bool doTruncation);
-
+// Fusing Relu and Trunc function with the same communication cost as a single relu
+void ReluTruncFusion(int32_t size, intType *inArr, intType *outArr, int sf);
 // void Clip(int32_t size, int64_t alpha, int64_t beta, intType *inArr, intType *outArr, int sf, bool doTruncation) ;
 
 void HardSigmoid(int32_t size, intType *inArr, intType *outArr, int sf, bool doTruncation);

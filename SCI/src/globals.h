@@ -24,6 +24,7 @@ SOFTWARE.
 
 #include "BuildingBlocks/aux-protocols.h"
 #include "BuildingBlocks/truncation.h"
+#include "BuildingBlocks/relutrunc.h"
 #include "Math/math-functions.h"
 #include "NonLinear/argmax.h"
 #include "NonLinear/maxpool.h"
@@ -54,6 +55,7 @@ extern sci::OTPack *otpack;
 
 extern AuxProtocols *aux;
 extern Truncation *truncation;
+extern ReluTrunc *relutrunc;
 extern XTProtocol *xt;
 #ifdef SCI_OT
 extern LinearOT *mult;
@@ -85,6 +87,7 @@ extern LinearOT *multArr[MAX_THREADS];
 #endif
 extern AuxProtocols *auxArr[MAX_THREADS];
 extern Truncation *truncationArr[MAX_THREADS];
+extern ReluTrunc *relutruncArr[MAX_THREADS];
 extern XTProtocol *xtArr[MAX_THREADS];
 extern ReLUProtocol<intType> *reluArr[MAX_THREADS];
 extern MaxPoolProtocol<intType> *maxpoolArr[MAX_THREADS];

@@ -1108,7 +1108,106 @@ truncation->truncate(size, tempOutp, outArr, sf, bitlength,1 ,msbShare);
   delete[] tempOutp;
   delete[] msbShare;
 }
+/*
+* API for relu and truncation fusion operator, only work for ring situation.
+*/
+void ReluTruncFusion(int32_t size, intType* inArr, intType * outArr,int sf){
+  #ifdef LOG_LAYERWISE
+  INIT_ALL_IO_DATA_SENT;
+  INIT_TIMER;
+#endif
 
+  static int ctr = 1;
+  std::cout << "ReluTrunc " << ctr << " called size=" << size << std::endl;
+  ctr++;
+
+  intType moduloMask = sci::all1Mask(bitlength);
+
+#ifndef MULTITHREADED_NONLIN
+  relutrunc->relutrunc(size, inArr, outArr, sf, bitlength);
+#else
+  std::thread relutrunc_threads[num_threads];
+  int chunk_size = size / num_threads;
+  for (int i = 0; i < num_threads; ++i) {
+    int offset = i * chunk_size;
+    int lnum_relutrunc;
+    if (i == (num_threads - 1)) {
+      lnum_relutrunc = size - offset;
+    } else {
+      lnum_relutrunc = chunk_size;
+    }
+    relutrunc_threads[i] = std::thread([=]() {
+    // Lambda function body replacing funcReLUThread
+    relutrunc->relutrunc(lnum_relutrunc, inArr+offset, outArr+offset, sf, bitlength);
+    // Add more loops or any other logic as per the original funcReLUThread
+});
+}
+  for (int i = 0; i < num_threads; ++i) {
+    relutrunc_threads[i].join();
+  }
+#endif
+
+#ifdef LOG_LAYERWISE
+  auto temp = TIMER_TILL_NOW;
+  ReluTimeInMilliSec += temp;
+  std::cout << "Time in sec for current relu = " << (temp / 1000.0)
+            << std::endl;
+  uint64_t curComm;
+  FIND_ALL_IO_TILL_NOW(curComm);
+  ReluCommSent += curComm;
+#endif
+
+#ifdef SCI_OT
+  for (int i = 0; i < size; i++) {
+    outArr[i] = outArr[i] & moduloMask;
+  }
+#endif
+
+#ifdef VERIFY_LAYERWISE
+#ifdef SCI_HE
+  assert(false && "ReluTrunc could only be used within power of 2 ring!");
+#endif
+
+  if (party == SERVER) {
+    funcReconstruct2PCCons(nullptr, inArr, size);
+    funcReconstruct2PCCons(nullptr, outArr, size);
+  } else {
+    signedIntType *VinArr = new signedIntType[size];
+    funcReconstruct2PCCons(VinArr, inArr, size);
+    signedIntType *VoutArr = new signedIntType[size];
+    funcReconstruct2PCCons(VoutArr, outArr, size);
+
+    std::vector<uint64_t> VinVec;
+    VinVec.resize(size, 0);
+
+    std::vector<uint64_t> VoutVec;
+    VoutVec.resize(size, 0);
+
+    for (int i = 0; i < size; i++) {
+      VinVec[i] = getRingElt(VinArr[i]);
+    }
+
+    Relu_pt(size, VinVec, VoutVec, 0, false); // sf = 0
+    ScaleDown_pt(size, VoutVec, sf);
+
+    bool pass = true;
+    for (int i = 0; i < size; i++) {
+      if (VoutArr[i] != getSignedVal(VoutVec[i])) {
+        pass = false;
+      }
+    }
+    if (pass == true)
+      std::cout << GREEN << "ReluTrunc Output Matches" << RESET
+                << std::endl;
+    else
+      std::cout << RED << "ReluTrunc Output Mismatch" << RESET
+                << std::endl;
+
+    delete[] VinArr;
+    delete[] VoutArr;
+  }
+#endif
+}
 void MaxPool(int32_t N, int32_t H, int32_t W, int32_t C, int32_t ksizeH,
              int32_t ksizeW, int32_t zPadHLeft, int32_t zPadHRight,
              int32_t zPadWLeft, int32_t zPadWRight, int32_t strideH,
@@ -1599,6 +1698,7 @@ void StartComputation() {
       party, bitlength, io, iknpOT, iknpOTRoleReversed);
   relu = new ReLURingProtocol<intType>(party, RING, iopack, bitlength,
                                        MILL_PARAM, otpack);
+  relutrunc = new ReluTrunc(party, iopack, otpack);
   maxpool = new MaxPoolProtocol<intType>(party, RING, iopack, bitlength,
                                          MILL_PARAM, 0, otpack);
   argmax = new ArgMaxProtocol<intType>(party, RING, iopack, bitlength,
@@ -1629,6 +1729,7 @@ void StartComputation() {
                                        MILL_PARAM, 0, otpackArr[i]);
       multArr[i] = new LinearOT(3 - party, iopackArr[i], otpackArr[i]);
       truncationArr[i] = new Truncation(3 - party, iopackArr[i], otpackArr[i]);
+      relutruncArr[i] = new ReluTrunc(3 - party, iopackArr[i], otpackArr[i]);
     } else {
       reluArr[i] = new ReLURingProtocol<intType>(
           party, RING, iopackArr[i], bitlength, MILL_PARAM, otpackArr[i]);
@@ -1636,6 +1737,7 @@ void StartComputation() {
           party, RING, iopackArr[i], bitlength, MILL_PARAM, 0, otpackArr[i]);
       multArr[i] = new LinearOT(party, iopackArr[i], otpackArr[i]);
       truncationArr[i] = new Truncation(party, iopackArr[i], otpackArr[i]);
+      relutruncArr[i] = new ReluTrunc(party, iopackArr[i], otpackArr[i]);
     }
   }
 #endif

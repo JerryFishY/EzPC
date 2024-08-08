@@ -35,6 +35,7 @@ MathFunctions *math;
 ArgMaxProtocol<intType> *argmax;
 ReLUProtocol<intType> *relu;
 MaxPoolProtocol<intType> *maxpool;
+ReluTrunc *relutrunc;
 // Additional classes for Athos
 #ifdef SCI_OT
 MatMulUniform<sci::NetIO, intType, sci::IKNP<sci::NetIO>> *multUniform;
@@ -58,6 +59,7 @@ LinearOT *multArr[MAX_THREADS];
 #endif
 AuxProtocols *auxArr[MAX_THREADS];
 Truncation *truncationArr[MAX_THREADS];
+ReluTrunc *relutruncArr[MAX_THREADS];
 XTProtocol *xtArr[MAX_THREADS];
 ReLUProtocol<intType> *reluArr[MAX_THREADS];
 MaxPoolProtocol<intType> *maxpoolArr[MAX_THREADS];
