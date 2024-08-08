@@ -1009,7 +1009,7 @@ truncation->truncate(size, tempOutp, outArr, sf, bitlength,1 ,msbShare);
       lnum_trunc = chunk_size;
     }
     trunc_threads[i] = std::thread(funcTRUNCThread, i, tempOutp + offset,
-                                  inArr + offset, lnum_trunc, sf, bitlength,1,msbShare);
+                                  outArr + offset, lnum_trunc, sf, bitlength,1,msbShare);
   }
   for (int i = 0; i < num_threads; ++i) {
     trunc_threads[i].join();
@@ -1108,6 +1108,8 @@ truncation->truncate(size, tempOutp, outArr, sf, bitlength,1 ,msbShare);
   delete[] tempOutp;
   delete[] msbShare;
 }
+#ifdef SCI_OT
+
 /*
 * API for relu and truncation fusion operator, only work for ring situation.
 */
@@ -1126,6 +1128,7 @@ void ReluTruncFusion(int32_t size, intType* inArr, intType * outArr,int sf){
 #ifndef MULTITHREADED_NONLIN
   relutrunc->relutrunc(size, inArr, outArr, sf, bitlength);
 #else
+  printf("multithread-nonlinear\n");
   std::thread relutrunc_threads[num_threads];
   int chunk_size = size / num_threads;
   for (int i = 0; i < num_threads; ++i) {
@@ -1138,7 +1141,7 @@ void ReluTruncFusion(int32_t size, intType* inArr, intType * outArr,int sf){
     }
     relutrunc_threads[i] = std::thread([=]() {
     // Lambda function body replacing funcReLUThread
-    relutrunc->relutrunc(lnum_relutrunc, inArr+offset, outArr+offset, sf, bitlength);
+    relutruncArr[i]->relutrunc(lnum_relutrunc, inArr+offset, outArr+offset, sf, bitlength);
     // Add more loops or any other logic as per the original funcReLUThread
 });
 }
@@ -1208,6 +1211,8 @@ void ReluTruncFusion(int32_t size, intType* inArr, intType * outArr,int sf){
   }
 #endif
 }
+
+#endif
 void MaxPool(int32_t N, int32_t H, int32_t W, int32_t C, int32_t ksizeH,
              int32_t ksizeW, int32_t zPadHLeft, int32_t zPadHRight,
              int32_t zPadWLeft, int32_t zPadWRight, int32_t strideH,
