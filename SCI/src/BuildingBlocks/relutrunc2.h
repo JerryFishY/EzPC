@@ -56,6 +56,8 @@ public:
                              int32_t trunc_bits,
                              int32_t res_bits,
                              int32_t final_bits);
+  void ReluTrunc2::wrap_computation(int32_t num,
+                        uint64_t *input, uint8_t *output, int32_t bitlength);
 };
 
 #endif // RELUTRUNC_H__

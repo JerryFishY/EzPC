@@ -18,7 +18,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#define OT_bits 6
+#define OT_bits 7
 #include "BuildingBlocks/relutrunc2.h"
 
 using namespace std;
@@ -139,4 +139,50 @@ void ReluTrunc2::relutrunc(int32_t num, uint64_t *input, uint64_t *output, int32
   delete[] wrap_upper;
   delete[] drelu;
   return;
+}
+
+// A more comm-efficient wrap function
+void ReluTrunc2::wrap_computation(int32_t num,
+                      uint64_t *input, uint8_t *output, int32_t bitlength){
+
+  int piece_length = OT_bits-1;
+  int pieces = (bitlength+piece_length-1)/piece_length;
+  int average_length = (bitlength+pieces-1)/pieces;
+  uint64_t ** ot_messages=new uint64_t*[num];
+
+  uint8_t* wrap =  new uint8_t[num]; 
+  memset(output, 0, num);
+  // encode the OT lut
+  for (int i = 0; i < pieces;i++){
+    int start = i*average_length;
+    int end = (i+1)*average_length;
+    if (end > bitlength){
+      end = bitlength;
+    }
+    int length = end-start;
+    uint64_t *input_piece = new uint64_t[num];
+    for (int j = 0; j < num;j++){
+      input_piece[j] = (input[j]>>start) & ((1ULL<<length)-1);
+    }
+    if(party == sci::ALICE){
+    
+    for (int j = 0; j < num;j++){
+      ot_messages[j] = new uint64_t[(1<<(length+1))];
+      for(int k = 0; k < (1<<(length+1)); k++){
+        int upper_share = k >> 1;
+        int lower_wrap_share = k & 1;
+        int wrap_bit = (upper_share + input_piece[j] > (1 << (length))) || (upper_share + input_piece[j] == (1 << (length))) && (lower_wrap_share!=wrap[j]);
+        ot_messages[j][k] = wrap_bit;
+      }
+    }
+    otpack->kkot[length]->send(ot_messages, num, 1);
+    }
+  else{
+    uint8_t * ot_choices=new uint8_t[num];
+    for (int j = 0;j< num;j++){
+      ot_choices[j] = input[j]<<1+wrap[j]; ;
+    }
+    otpack->kkot[length]->recv(wrap, ot_choices, num, 1);
+  }
+}
 }
